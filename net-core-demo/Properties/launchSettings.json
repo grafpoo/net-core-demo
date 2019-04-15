@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "insignia": {
+    "net-core-demo": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/airplane",

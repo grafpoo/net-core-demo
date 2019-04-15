@@ -1,26 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using insignia.Models;
+using Microsoft.Extensions.Configuration;
+
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace insignia.Controllers
 {
-    [Route("api/[controller]")]
     public class AirplaneController : Controller
     {
-        // GET: /<controller>/
-        public JsonResult Index()
+
+        public AirplaneController(IConfiguration configuration)
         {
-            using (var context = new AirplaneDbContext()) {
-                var a = context.Airplanes.ToArray();
-                //var a = new Airplane[] { new Airplane { ID = "AID-0", Name = "Red Baron" },
-                //    new Airplane { ID = "AID-1", Name = "Blue Baron" } };
-                return Json(a);
-            }
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        // GET: /<controller>/
+        public JsonResult Index([FromServices] AirplaneContext context)
+        {
+            var a = context.Airplanes.ToArray();
+            return Json(a);
         }
     }
 }

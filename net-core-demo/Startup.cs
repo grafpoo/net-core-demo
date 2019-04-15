@@ -1,39 +1,72 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Steeltoe.CloudFoundry.Connector.MySql;
 using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
-using Steeltoe.Management.CloudFoundry;
+//using Steeltoe.Management.CloudFoundry;
+using insignia.Models;
 
 namespace insignia
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddMySqlConnection(Configuration);
+            // Add Context and use MySql as provider ... provider will be configured from VCAP_ info
+            if (Configuration.GetValue<bool>("multipleMySqlDatabases"))
+            {
+                // For multiple databases, specify the service binding name
+                // review appsettings.development.json to see how local connection info is provided
+                services.AddDbContext<AirplaneContext>(options => options.UseMySql(Configuration, "myMySqlService"));
+                //services.AddMySqlHealthContributor(Configuration, "myMySqlService");
+            }
+            else
+            {
+                services.AddDbContext<AirplaneContext>(options => options.UseMySql(Configuration));
+                //services.AddMySqlHealthContributor(Configuration);
+            }
+
+
+            //services.AddCloudFoundryActuators(Configuration);
+
+            // Add framework services.
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+            }
+
+            app.UseStaticFiles();
+
+            //app.UseCloudFoundryActuators();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Airplane}/{action=Index}/{id?}");
+            });
+
+        }// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            public void OldConfigure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
