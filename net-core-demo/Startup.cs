@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Steeltoe.CloudFoundry.Connector.MySql;
+using Microsoft.Extensions.Logging.Console;
 using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
 using Steeltoe.Extensions.Configuration.CloudFoundry;
-//using Steeltoe.Management.CloudFoundry;
+using Steeltoe.Extensions.Logging;
+using Steeltoe.Management.CloudFoundry;
 using Newtonsoft.Json.Linq;
 using insignia.Models;
 
@@ -24,11 +25,17 @@ namespace insignia
 
         public IConfiguration Configuration { get; }
         public ILogger Logger { get; }
+        public static ILoggerFactory LoggerFactory { get; set; }
+        public static ILoggerProvider LoggerProvider { get; set; }
 
         public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
             Logger = logger;
+            LoggerProvider = new DynamicLoggerProvider(new ConsoleLoggerSettings().FromConfiguration(Configuration));
+            LoggerFactory = new LoggerFactory();
+            LoggerFactory.AddProvider(LoggerProvider);
+
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -58,7 +65,7 @@ namespace insignia
             services.AddDbContext<AirplaneContext>(options => options.UseMySql(Configuration));
             //services.AddMySqlHealthContributor(Configuration);
             services.GetEnumerator();
-            //services.AddCloudFoundryActuators(Configuration);
+            services.AddCloudFoundryActuators(Configuration);
 
             // Add framework services.
             services.AddMvc();
@@ -70,6 +77,7 @@ namespace insignia
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -81,7 +89,7 @@ namespace insignia
 
             app.UseStaticFiles();
 
-            //app.UseCloudFoundryActuators();
+            app.UseCloudFoundryActuators();
 
             app.UseMvc(routes =>
             {
@@ -90,25 +98,8 @@ namespace insignia
                     template: "{controller=Airplane}/{action=Index}/{id?}");
             });
 
-        }// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-            public void OldConfigure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseMvc();
-            // app.UseWelcomePage();
-            app.UseDeveloperExceptionPage();
-            app.UseStaticFiles();
         }
+
     }
 
 

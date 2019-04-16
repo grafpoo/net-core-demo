@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
 
 namespace insignia.Models
 {
@@ -14,14 +13,4 @@ namespace insignia.Models
 
         public DbSet<Airplane> Airplanes { get; set; }
     }
-
-    //[Table("Airplane")]
-    //public class AirplaneData
-    //{
-    //    [Key]
-    //    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    //    public string Id { get; set; }
-
-    //    public string Data { get; set; }
-    //}
 }
